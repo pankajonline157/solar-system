@@ -21,7 +21,7 @@ jobs:
               - nodejs_version: 26
                 operating_system: macos-latest
               - nodejs_version: 26
-                operating_version: ubuntu-latest
+                operating_system: ubuntu-latest
         runs-on: ${{ matrix.operating_system }}
         steps:
         - name: checkout Repository
