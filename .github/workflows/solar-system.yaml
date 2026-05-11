@@ -7,8 +7,8 @@ on:
         - 'feature/*'
 env:
 #    MONGO_URI: 'mongodb+srv://cluster0.5hw9k.mongodb.net/'
-    MONGO_URI: mongodb+srv://pankajonline157:P%40online@cluster0-shard-00-00.5hw9k.mongodb.net:27017,cluster0-shard-00-01.5hw9k.mongodb.net:27017,cluster0-shard-00-02.5hw9k.mongodb.net:27017/myDatabase?retryWrites=true&w=majority
-#    MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
+    MONGO_URI: mongodb+srv://pankajonline157:P%40online@cluster0.5hw9k.mongodb.net/?appName=Cluster0
+    #    MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
 #    MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
 jobs:
