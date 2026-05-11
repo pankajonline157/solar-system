@@ -1,11 +1,14 @@
-name: Solar System WorksFlow
-  
+name: Solar System WorksFlow 
 on:
   workflow_dispatch:
   push:
     branches:
         - main
         - 'feature/*'
+env:
+    MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
+    MONGO_USERNAME: ${{ env.MONGO_USERNAME }}
+    MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
 jobs:
     unit-testing:
