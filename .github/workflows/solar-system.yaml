@@ -7,7 +7,7 @@ on:
         - 'feature/*'
 env:
 #    MONGO_URI: 'mongodb+srv://cluster0.5hw9k.mongodb.net/'
-    MONGO_URI: mongodb+srv://pankajonline157:P@online@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority
+    MONGO_URI: mongodb+srv://pankajonline157:P%40online@cluster0.5hw9k.mongodb.net/myDatabase?retryWrites=true&w=majority
 #    MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
 #    MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
