@@ -24,6 +24,8 @@ jobs:
                 operating_system: ubuntu-latest
               - nodejs_version: 24
                 operating_system: macos-latest
+              - nodejs_version: 20
+                operating_system: macos-latest                
         runs-on: ${{ matrix.operating_system }}
         steps:
         - name: checkout Repository
@@ -77,4 +79,18 @@ jobs:
           with:
             name: Code-coverage-Results
             path: coverage
-            retention-days: 5 
+            retention-days: 5
+    
+    docker:
+      name: Docker file 
+      needs: [unit-testing,code-coverage]
+      runs-on: ubuntu-latest
+      steps:
+      - name: checkout Repo
+        uses: actions@checkout@v4
+      
+      - name: Dockerhub Login
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD}}
