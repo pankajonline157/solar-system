@@ -128,10 +128,10 @@ jobs:
           context: .
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-    
+  
     Dev-Deployment:
       needs: docker
-      runs-on: ubuntu:latest
+      runs-on: ubuntu-latest
       steps:
        - name: checkout Repository
          uses: actions/checkout@v4
