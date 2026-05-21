@@ -188,3 +188,7 @@ jobs:
        - name: Deploy to Dev Env
          run: |
             kubectl apply -f kubernetes/development
+        
+       - name: Test Command added
+         run: |
+            kubectl get nodes
