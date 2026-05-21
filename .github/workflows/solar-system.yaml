@@ -167,7 +167,7 @@ jobs:
 
        - name: Print Final Image
          run: |
-          IMAGE="${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}"
+          IMAGE="${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}" >> $GITHUB_ENV
           echo "$IMAGE"
 
        - name: Save Nginx Ingress IP
