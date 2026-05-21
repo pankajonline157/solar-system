@@ -141,6 +141,17 @@ jobs:
          with:
            version: 'v1.26.0'
 
+       - name: Configure AWS Credentials
+         uses: aws-actions/configure-aws-credentials@v4
+         with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: us-east-1
+       
+       - name: Verify kubeconfig exists
+         run: |
+            echo "${{ secrets.KUBECONFIG }}" | head
+
        - name: Set Kubeconfig File
          uses: azure/k8s-set-context@v3
          with:
