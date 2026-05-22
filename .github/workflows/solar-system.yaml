@@ -158,86 +158,97 @@ jobs:
           tags: |
              ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
              ghcr.io/${{ github.repository_owner }}/solar-system:${{ github.sha }}
-    # Dev-Deployment:
-    #   needs: docker
+    Dev-Deployment:
+      needs: docker
+      runs-on: ubuntu-latest
+      steps:
+       - name: checkout Repository
+         uses: actions/checkout@v4
+
+       - name: Install kubectl CLI
+         uses: azure/setup-kubectl@v3
+         with:
+           version: 'v1.26.0'
+
+       - name: Configure AWS Credentials
+         uses: aws-actions/configure-aws-credentials@v4
+         with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: us-east-1
+       
+       - name: Verify kubeconfig exists
+         run: |
+            echo "${{ secrets.KUBECONFIG }}" | head
+
+       - name: Set Kubeconfig File
+         uses: azure/k8s-set-context@v3
+         with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+
+       - name: Fetch Kubernetes Cluster Details
+         run: |
+           kubectl version --short
+           echo "------------------------------------------"
+           kubectl get nodes
+
+       - name: Print Final Image
+         run: |
+          IMAGE="${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}" >> $GITHUB_ENV
+          echo "$IMAGE"
+
+       - name: Save Nginx Ingress IP
+         id: ingress
+         run: |
+           echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc ingress-nginx-controller \
+            -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
+
+       - name: Replace tokens in manifests
+         uses: cschleiden/replace-tokens@v1
+         with:
+           tokenPrefix: '_{_'
+           tokenSuffix: '_}_'
+           files: '["kubernetes/development/*.yaml"]'
+         env:
+           NAMESPACE: ${{ vars.NAMESPACE }}
+           REPLICAS: ${{ vars.REPLICAS }}
+           IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+           INGRESS_IP: ${{ env.INGRESS_IP }}
+
+       - name: Verify replaced manifests
+         run: |
+            cat kubernetes/development/*.yaml
+            echo "-------------------------"
+            echo "${{ vars.NAMESPACE }}"
+            echo "${{ vars.DOCKERHUB_USERNAME }}"
+       
+       - name: Create MongoDB Secret
+         run: |
+           kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
+             --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
+             --from-literal=MONGO_USERNAME=${{ env.MONGO_USERNAME }} \
+             --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} \
+             --save-config \
+             --dry-run=client \
+             -o yaml | kubectl apply -f -
+
+       - name: Deploy to Dev Env
+         run: |
+            kubectl apply -f kubernetes/development
+        
+       - name: Test Command added
+         run: |
+            kubectl get nodes
+
+    # integration-testing:
+    #   name: Dev Integration Testing
+    #   needs: Dev-Deployment
     #   runs-on: ubuntu-latest
     #   steps:
-    #    - name: checkout Repository
-    #      uses: actions/checkout@v4
-
-    #    - name: Install kubectl CLI
-    #      uses: azure/setup-kubectl@v3
-    #      with:
-    #        version: 'v1.26.0'
-
-    #    - name: Configure AWS Credentials
-    #      uses: aws-actions/configure-aws-credentials@v4
-    #      with:
-    #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #         aws-region: us-east-1
-       
-    #    - name: Verify kubeconfig exists
-    #      run: |
-    #         echo "${{ secrets.KUBECONFIG }}" | head
-
-    #    - name: Set Kubeconfig File
-    #      uses: azure/k8s-set-context@v3
-    #      with:
-    #       method: kubeconfig
-    #       kubeconfig: ${{ secrets.KUBECONFIG }}
-
-
-    #    - name: Fetch Kubernetes Cluster Details
-    #      run: |
-    #        kubectl version --short
-    #        echo "------------------------------------------"
-    #        kubectl get nodes
-
-    #    - name: Print Final Image
-    #      run: |
-    #       IMAGE="${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}" >> $GITHUB_ENV
-    #       echo "$IMAGE"
-
-    #    - name: Save Nginx Ingress IP
-    #      id: ingress
-    #      run: |
-    #        echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc ingress-nginx-controller \
-    #         -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
-
-    #    - name: Replace tokens in manifests
-    #      uses: cschleiden/replace-tokens@v1
-    #      with:
-    #        tokenPrefix: '_{_'
-    #        tokenSuffix: '_}_'
-    #        files: '["kubernetes/development/*.yaml"]'
-    #      env:
-    #        NAMESPACE: ${{ vars.NAMESPACE }}
-    #        REPLICAS: ${{ vars.REPLICAS }}
-    #        IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-    #        INGRESS_IP: ${{ env.INGRESS_IP }}
-
-    #    - name: Verify replaced manifests
-    #      run: |
-    #         cat kubernetes/development/*.yaml
-    #         echo "-------------------------"
-    #         echo "${{ vars.NAMESPACE }}"
-    #         echo "${{ vars.DOCKERHUB_USERNAME }}"
-       
-    #    - name: Create MongoDB Secret
-    #      run: |
-    #        kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-    #          --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
-    #          --from-literal=MONGO_USERNAME=${{ env.MONGO_USERNAME }} \
-    #          --from-literal=MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }} \
-    #          --save-config \
-    #          --dry-run=client \
-    #          -o yaml | kubectl apply -f -
-
-    #    - name: Deploy to Dev Env
-    #      run: |
-    #         kubectl apply -f kubernetes/development
-        
-    #    - name: Test Command added
-    #      run: |
-    #         kubectl get nodes
+    #     - name: Test URL Endpoint URL
+    #       run: |
+    #         echo "Testing endpoint: $URL"
+    #         echo "------------------------------"
+    #         curl https://$URL/live -s -k | jq -r .status | grep -iq live
