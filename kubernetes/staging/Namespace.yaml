@@ -1,4 +1,4 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: _{_NAMESPACE_}_
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: _{_NAMESPACE_}_
