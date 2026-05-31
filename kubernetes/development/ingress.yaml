@@ -11,8 +11,8 @@ metadata:
 spec:
     ingressClassName: alb
     rules:
-    - host: solar-system-_{_NAMESPACE_}_._{_INGRESS_IP_}_.nip.io
-      http:
+    #- host: solar-system-_{_NAMESPACE_}_._{_INGRESS_IP_}_.nip.io
+    - http:
         paths:
         - backend:
             service:
